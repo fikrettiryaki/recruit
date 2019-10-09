@@ -2,14 +2,15 @@ package com.evbox.assignment.service;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 import java.util.UUID;
 
 import org.springframework.stereotype.Component;
 
-import com.evbox.assignment.data.Node;
 import com.evbox.assignment.data.dto.ChargeSessionDto;
 import com.evbox.assignment.data.model.ChargeSession;
 import com.evbox.assignment.exceptions.SessionNotFoundException;
@@ -18,15 +19,12 @@ import com.evbox.assignment.exceptions.SessionNotFoundException;
 public class ChargeSessionDataConcurrentImpl implements ChargeSessionData{
 
 
-	//We do not need concurrent hash map as access points are already synchronized. 
-	//Adding extra synchronization only slows down the operation
-	Map<UUID, ChargeSession> sessionMap = new HashMap<>();
-
-	//Extra data structure to keep order of sessions in the LIFO order
-	Node sessionList = null;
+	final TreeMap<LocalDateTime, ChargeSession> timeSortedMap = new TreeMap<>();
+	final Map<UUID, ChargeSession> sessionMap = new HashMap<>();
 
 	@Override
 	public synchronized ChargeSessionDto updateSession(final ChargeSessionDto sessionDto) {
+		
 
 		if(!sessionMap.containsKey(sessionDto.getId())) {
 			throw new SessionNotFoundException(sessionDto.getId());
@@ -49,28 +47,20 @@ public class ChargeSessionDataConcurrentImpl implements ChargeSessionData{
 		session.setStatus(sessionDto.getStatus());
 		session.setStoppedAt(sessionDto.getStoppedAt());
 
+
 		sessionMap.put(session.getId(),session);
-
-		Node node = new Node(session);
-
-		if(sessionList != null) {
-			node.setNext(sessionList);
-		}
-
-		sessionList = node;
+		timeSortedMap.put(session.getStartedAt(), session);
 
 		return ChargeSessionDto.of(session);
 	}
 
 	@Override
 	public synchronized List<ChargeSessionDto> getAll() {
+		
 		List<ChargeSessionDto> sessionDtos = new ArrayList<>();
 
-		Node node = sessionList;
-
-		while(node != null ) {
-			sessionDtos.add(ChargeSessionDto.of(node.getValue()));
-			node = node.getNext();
+		for(ChargeSession session : sessionMap.values()) {
+			sessionDtos.add(ChargeSessionDto.of(session));
 		}
 		return sessionDtos;
 	}
@@ -78,19 +68,20 @@ public class ChargeSessionDataConcurrentImpl implements ChargeSessionData{
 	@Override
 	public synchronized List<ChargeSessionDto> getLastNodes(LocalDateTime startFrom) {
 
-		List<ChargeSessionDto> lastNodes = new ArrayList<>();
-		Node node = sessionList;
+		Collection<ChargeSession> lastSessions = timeSortedMap.tailMap(startFrom).values();
 
-		while(node != null && node.getValue().getStartedAt().isAfter( startFrom)) {
-			lastNodes.add(ChargeSessionDto.of(node.getValue()));
-			node = node.getNext();
+		List<ChargeSessionDto> sessionDtos = new ArrayList<>();
+
+		for(ChargeSession session : lastSessions) {
+			sessionDtos.add(ChargeSessionDto.of(session));
 		}
-		return lastNodes;
+		return sessionDtos;
 
 	}
 
 	@Override
 	public synchronized ChargeSessionDto getSession(UUID id) {
+		
 		if(!sessionMap.containsKey(id)) {
 			throw new SessionNotFoundException(id);
 		}
