@@ -6,26 +6,24 @@ import java.util.UUID;
 
 import org.springframework.stereotype.Service;
 
-import com.evbox.assignment.data.dto.ChargeSessionDto;
+import com.evbox.assignment.data.dto.ChargingSessionDto;
 import com.evbox.assignment.data.enums.StatusEnum;
 
 import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
-public class StationSessionManagerImpl implements StationSessionManager {
+public class StationSessionRegistryService {
 	
-	private final ChargeSessionData chargeSessionData;
+	private final ChargingSessionDataService chargeSessionData;
 	
 	private final Map<String, UUID> stationSessionMap = new HashMap<>();
 
-	@Override
 	public void registerSessionToStation(String stationId, UUID sessionId) {
 		stationSessionMap.put(stationId, sessionId);
 		
 	}
 
-	@Override
 	/**
 	 * Checks if there is a station information registered before. 
 	 * If not, the queried station is assumed to be available
@@ -38,7 +36,7 @@ public class StationSessionManagerImpl implements StationSessionManager {
 			return true;
 		}
 		
-		final ChargeSessionDto session = chargeSessionData.getSession(stationSessionMap.get(stationId));
+		final ChargingSessionDto session = chargeSessionData.getSession(stationSessionMap.get(stationId));
 		
         return session.getStatus() == StatusEnum.FINISHED;
 	}

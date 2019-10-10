@@ -8,7 +8,7 @@ import com.evbox.assignment.data.enums.StatusEnum;
 import lombok.Data;
 
 @Data
-public class ChargeSession {
+public class ChargingSession {
 	UUID id;
 	String stationId;
 	LocalDateTime startedAt;

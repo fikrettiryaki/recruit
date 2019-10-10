@@ -29,10 +29,10 @@ public class CustomGlobalExceptionHandler extends ResponseEntityExceptionHandler
 
 		CustomErrorResponse error = new CustomErrorResponse(
 				LocalDateTime.now(),
-				HttpStatus.BAD_REQUEST.value(),
+				HttpStatus.NOT_FOUND.value(),
 				ex.getMessage());
 
-		return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
+		return new ResponseEntity<>(error, HttpStatus.NOT_FOUND);
 
 	}
 }
