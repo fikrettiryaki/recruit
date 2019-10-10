@@ -1,4 +1,4 @@
-package com.evbox.assignment.service;
+package com.evbox.assignment.repository;
 
 import com.evbox.assignment.data.dto.ChargingSessionDto;
 import com.evbox.assignment.data.enums.StatusEnum;
@@ -10,16 +10,16 @@ import java.util.Map;
 import java.util.UUID;
 
 /**
- * Station registry service to match stations to sessions
+ * Station  repository to host Station information
  * <p>
  * In ideal case the available stations should already be provided.
  * For simplicity of the task, unknown station Ids are treated as available.
  */
 @Service
 @RequiredArgsConstructor
-public class StationRegistryService {
+public class StationRepository {
 
-    private final ChargingSessionDataService chargeSessionData;
+    private final ChargingSessionRepository chargeSessionData;
 
     private final Map<String, UUID> stationSessionMap = new HashMap<>();
 

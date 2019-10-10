@@ -4,6 +4,9 @@ import com.evbox.assignment.data.dto.ChargingSessionDto;
 import com.evbox.assignment.data.dto.SummaryDto;
 import com.evbox.assignment.data.enums.StatusEnum;
 import com.evbox.assignment.exceptions.StationNotAvailableException;
+import com.evbox.assignment.repository.ActivityLogRepository;
+import com.evbox.assignment.repository.ChargingSessionRepository;
+import com.evbox.assignment.repository.StationRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -20,11 +23,11 @@ import java.util.UUID;
  */
 @Service
 @RequiredArgsConstructor
-public class ChargingSessionManagerService {
+public class ChargingSessionService {
 
-    private final ChargingSessionDataService chargeSessionData;
-    private final StationRegistryService stationSessionRegistry;
-    private final ActivityLogService activityLogger;
+    private final ChargingSessionRepository chargeSessionData;
+    private final StationRepository stationSessionRegistry;
+    private final ActivityLogRepository activityLogger;
 
     /**
      * Creates a session for the station ID provided
@@ -43,7 +46,7 @@ public class ChargingSessionManagerService {
      * @param stationId as the id of the station {@code String}
      * @return generated {@code ChargingSessionDto}
      */
-    public synchronized ChargingSessionDto createSession(String stationId) {
+    public synchronized ChargingSessionDto createSession(final String stationId) {
 
         if (!stationSessionRegistry.isStationAvailable(stationId)) {
             throw new StationNotAvailableException(stationId);
@@ -64,7 +67,7 @@ public class ChargingSessionManagerService {
      * @param id as session identifier to be stopped
      * @return updated {@code ChargingSessionDto}
      */
-    public ChargingSessionDto stopSession(UUID id) {
+    public synchronized ChargingSessionDto stopSession(final UUID id) {
 
         ChargingSessionDto session = chargeSessionData.stopSession(id);
         activityLogger.log(session.getStoppedAt(), session.getId(), StatusEnum.FINISHED);
@@ -77,7 +80,7 @@ public class ChargingSessionManagerService {
      *
      * @return list of {@code ChargingSessionDto}
      */
-    public List<ChargingSessionDto> getAll() {
+    public synchronized List<ChargingSessionDto> getAll() {
 
         return chargeSessionData.getAll();
     }
@@ -87,10 +90,9 @@ public class ChargingSessionManagerService {
      *
      * @return list of {@code ChargingSessionDto}
      */
-    public SummaryDto getSummary() {
+    public synchronized SummaryDto getSummary() {
 
         return activityLogger.getSummary(LocalDateTime.now().minusMinutes(1));
     }
-
 
 }

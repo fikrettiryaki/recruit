@@ -1,4 +1,4 @@
-package com.evbox.assignment.service;
+package com.evbox.assignment.repository;
 
 import com.evbox.assignment.data.dto.ChargingSessionDto;
 import com.evbox.assignment.data.enums.StatusEnum;
@@ -12,13 +12,13 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 /**
- * A Concurrent data manager for ChargingSession data objects
+ * A Concurrent data repository for ChargingSession data objects
  * Provides add, stop and get operations.
  * Data is stored internally in a HashMap. All access to HashMap and multi thread vulnerable sections
  * of code are synchronized wia internal lock therefore a concurrent Map implementaion is redundant.
  */
 @Service
-public class ChargingSessionDataService {
+public class ChargingSessionRepository {
 
     final private Map<UUID, ChargingSession> sessionMap = new HashMap<>();
     final private Object lock = new Object();
@@ -46,8 +46,6 @@ public class ChargingSessionDataService {
             session.setStoppedAt(LocalDateTime.now());
             return ChargingSessionDto.of(session);
         }
-
-
     }
 
     /**

@@ -13,12 +13,16 @@ import java.util.UUID;
  */
 @Getter
 @AllArgsConstructor
-public class ChargingActivity implements Comparable<ChargingActivity> {
+public class ActivityLog implements Comparable<ActivityLog> {
     LocalDateTime activityTime;
     UUID sessionId;
 
     @Override
-    public int compareTo(ChargingActivity target) {
+    public int compareTo(ActivityLog target) {
+        if(activityTime.equals(target.activityTime)){
+            //Check further if those activities are really identical
+            return sessionId.compareTo(target.sessionId);
+        }
         return activityTime.compareTo(target.getActivityTime());
     }
 

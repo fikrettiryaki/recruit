@@ -1,8 +1,8 @@
-package com.evbox.assignment.service;
+package com.evbox.assignment.repository;
 
 import com.evbox.assignment.data.dto.SummaryDto;
 import com.evbox.assignment.data.enums.StatusEnum;
-import com.evbox.assignment.data.model.ChargingActivity;
+import com.evbox.assignment.data.model.ActivityLog;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -12,18 +12,19 @@ import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 /**
- * Activity logger to keep track of activities.
+ * Activity repository to host {@code ActivityLog}
  * Start and stop activities are logged seperately to enable log(n) time for retrieving activity size
  * Read and write operations are thread safe using seperate locks for read and write operations.
  */
 @Service
-public class ActivityLogService {
+public class ActivityLogRepository {
 
-    final TreeSet<ChargingActivity> timeSortedStartActivity = new TreeSet<>();
-    final TreeSet<ChargingActivity> timeSortedStopActivity = new TreeSet<>();
+    final TreeSet<ActivityLog> timeSortedStartActivity = new TreeSet<>();
+    final TreeSet<ActivityLog> timeSortedStopActivity = new TreeSet<>();
 
     final ReadWriteLock lock = new ReentrantReadWriteLock();
 
+    private static final UUID minId = UUID.fromString("00000000-0000-0000-0000-000000000000");
     /**
      * Logs activity to either of treeSets depending on the activity type
      *
@@ -32,15 +33,13 @@ public class ActivityLogService {
      * @param activityStatus StatusEnum determines the type of logging.
      */
     public void log(final LocalDateTime activityTime, final UUID sessionId, final StatusEnum activityStatus) {
-        if (activityStatus == StatusEnum.IN_PROGRESS) {
-            lock.writeLock().lock();
-            timeSortedStartActivity.add(new ChargingActivity(activityTime, sessionId));
-            lock.writeLock().unlock();
+        lock.writeLock().lock();
+        if(activityStatus == StatusEnum.IN_PROGRESS) {
+            timeSortedStartActivity.add(new ActivityLog(activityTime, sessionId));
         } else {
-            lock.writeLock().lock();
-            timeSortedStopActivity.add(new ChargingActivity(activityTime, sessionId));
-            lock.writeLock().unlock();
+            timeSortedStopActivity.add(new ActivityLog(activityTime, sessionId));
         }
+        lock.writeLock().unlock();
     }
 
     /**
@@ -58,7 +57,7 @@ public class ActivityLogService {
      */
     public synchronized SummaryDto getSummary(final LocalDateTime startFrom) {
 
-        final ChargingActivity activityStartFrom = new ChargingActivity(startFrom, null);
+        final ActivityLog activityStartFrom = new ActivityLog(startFrom,minId);
 
         lock.readLock().lock();
         final int startedCount = timeSortedStartActivity.tailSet(activityStartFrom).size();

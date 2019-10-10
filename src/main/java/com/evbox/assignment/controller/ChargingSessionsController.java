@@ -3,7 +3,7 @@ package com.evbox.assignment.controller;
 import com.evbox.assignment.data.dto.ChargingRequestDto;
 import com.evbox.assignment.data.dto.ChargingSessionDto;
 import com.evbox.assignment.data.dto.SummaryDto;
-import com.evbox.assignment.service.ChargingSessionManagerService;
+import com.evbox.assignment.service.ChargingSessionService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -16,7 +16,7 @@ import java.util.UUID;
 @RequestMapping("chargingSessions")
 public class ChargingSessionsController {
 
-    private final ChargingSessionManagerService chargeSessionManager;
+    private final ChargingSessionService chargeSessionManager;
 
     /**
      * Rest endpoint to get the list of charging sessions
