@@ -14,8 +14,8 @@ import java.util.stream.Collectors;
 /**
  * A Concurrent data repository for ChargingSession data objects
  * Provides add, stop and get operations.
- * Data is stored internally in a HashMap. All access to HashMap and multi thread vulnerable sections
- * of code are synchronized wia internal lock therefore a concurrent Map implementaion is redundant.
+ * Data is stored internally in a HashMap. All access to HashMap and multithread vulnerable sections
+ * of code are synchronized via internal lock therefore a concurrent Map implementaion is redundant.
  */
 @Service
 public class ChargingSessionRepository {

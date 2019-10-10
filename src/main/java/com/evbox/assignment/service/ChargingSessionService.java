@@ -6,7 +6,7 @@ import com.evbox.assignment.data.enums.StatusEnum;
 import com.evbox.assignment.exceptions.StationNotAvailableException;
 import com.evbox.assignment.repository.ActivityLogRepository;
 import com.evbox.assignment.repository.ChargingSessionRepository;
-import com.evbox.assignment.repository.StationRepository;
+import com.evbox.assignment.repository.StationSessionRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -25,9 +25,9 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class ChargingSessionService {
 
-    private final ChargingSessionRepository chargeSessionData;
-    private final StationRepository stationSessionRegistry;
-    private final ActivityLogRepository activityLogger;
+    private final ChargingSessionRepository chargeSessionRepository;
+    private final StationSessionRepository stationSessionRepository;
+    private final ActivityLogRepository activityLogRepository;
 
     /**
      * Creates a session for the station ID provided
@@ -48,14 +48,13 @@ public class ChargingSessionService {
      */
     public synchronized ChargingSessionDto createSession(final String stationId) {
 
-        if (!stationSessionRegistry.isStationAvailable(stationId)) {
+        if (!stationSessionRepository.isStationAvailable(stationId)) {
             throw new StationNotAvailableException(stationId);
         }
 
-        final ChargingSessionDto session = chargeSessionData.addSession(stationId);
-
-        stationSessionRegistry.registerSessionToStation(stationId, session.getId());
-        activityLogger.log(session.getStartedAt(), session.getId(), StatusEnum.IN_PROGRESS);
+        final ChargingSessionDto session = chargeSessionRepository.addSession(stationId);
+        stationSessionRepository.registerSessionToStation(stationId, session.getId());
+        activityLogRepository.log(session.getStartedAt(), session.getId(), StatusEnum.IN_PROGRESS);
 
         return session;
 
@@ -63,15 +62,20 @@ public class ChargingSessionService {
 
     /**
      * Stops the active charging session
+     * 
+     * 1-Session is finalized
+     * 2-station is released
+     * 3-session stop activity is logged
      *
      * @param id as session identifier to be stopped
      * @return updated {@code ChargingSessionDto}
      */
     public synchronized ChargingSessionDto stopSession(final UUID id) {
 
-        ChargingSessionDto session = chargeSessionData.stopSession(id);
-        activityLogger.log(session.getStoppedAt(), session.getId(), StatusEnum.FINISHED);
-
+        final ChargingSessionDto session = chargeSessionRepository.stopSession(id);
+        stationSessionRepository.releaseStation(session.getStationId());
+        activityLogRepository.log(session.getStoppedAt(), session.getId(), StatusEnum.FINISHED);
+        
         return session;
     }
 
@@ -80,9 +84,9 @@ public class ChargingSessionService {
      *
      * @return list of {@code ChargingSessionDto}
      */
-    public synchronized List<ChargingSessionDto> getAll() {
+    public List<ChargingSessionDto> getAll() {
 
-        return chargeSessionData.getAll();
+        return chargeSessionRepository.getAll();
     }
 
     /**
@@ -92,7 +96,7 @@ public class ChargingSessionService {
      */
     public synchronized SummaryDto getSummary() {
 
-        return activityLogger.getSummary(LocalDateTime.now().minusMinutes(1));
+        return activityLogRepository.getSummary(LocalDateTime.now().minusMinutes(1));
     }
 
 }

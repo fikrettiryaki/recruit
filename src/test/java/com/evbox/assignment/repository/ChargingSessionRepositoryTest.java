@@ -8,9 +8,11 @@ import com.evbox.assignment.repository.ChargingSessionRepository;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.util.List;
 import java.util.UUID;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 public class ChargingSessionRepositoryTest {
     ChargingSessionRepository chargingSessionRepository;
@@ -58,7 +60,7 @@ public class ChargingSessionRepositoryTest {
     public void stopSession_alreadyStopped_throwsException(){
         //GIVEN
         ChargingSessionDto sessionDto = chargingSessionRepository.addSession("some-session");
-        ChargingSessionDto responseDto = chargingSessionRepository.stopSession(sessionDto.getId());
+        chargingSessionRepository.stopSession(sessionDto.getId());
 
         //WHEN
         chargingSessionRepository.stopSession(sessionDto.getId());
@@ -69,16 +71,14 @@ public class ChargingSessionRepositoryTest {
     @Test
     public void getAll_success(){
         //GIVEN
-        final String stationId1 = "some-station-id1";
-        final String stationId2 = "some-station-id2";
         ChargingSessionDto sessionDto = chargingSessionRepository.addSession("some-session");
-        ChargingSessionDto sessionDto2 = chargingSessionRepository.addSession("some-session");
+        ChargingSessionDto sessionDto2 = chargingSessionRepository.addSession("some-session2");
 
         //WHEN
-        ChargingSessionDto responseDto = chargingSessionRepository.stopSession(sessionDto.getId());
+        List<ChargingSessionDto> responseDtos = chargingSessionRepository.getAll();
 
         //THEN
-        assertEquals(StatusEnum.FINISHED, responseDto.getStatus());
+        assertEquals(2, responseDtos.size());
     }
 
 
