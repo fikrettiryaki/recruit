@@ -3,6 +3,11 @@ package com.evbox.assignment;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
+/**
+ * Evbox Assigment
+ *
+ * @author fikrett 
+ */
 @SpringBootApplication
 public class Application {
 
